@@ -36,15 +36,31 @@
   const copyBtn = document.getElementById('copyCA');
   const caText = document.getElementById('caText');
   if (copyBtn && caText) {
+    const fallbackCopy = (text) => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+      document.body.removeChild(ta);
+      return ok;
+    };
+
     copyBtn.addEventListener('click', async () => {
       const ca = copyBtn.dataset.ca || caText.textContent.trim();
-      const original = caText.textContent;
+      const original = ca;
+      let ok = false;
       try {
         await navigator.clipboard.writeText(ca);
-        caText.textContent = 'Copied · breathe out';
+        ok = true;
       } catch {
-        caText.textContent = 'Copy failed · try again';
+        ok = fallbackCopy(ca);
       }
+      caText.textContent = ok ? 'Copied · breathe out' : 'Copy failed · select & copy';
       setTimeout(() => { caText.textContent = original; }, 1800);
     });
   }
